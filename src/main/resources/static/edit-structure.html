@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>结构编辑</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+  <div class="logo">USTB Survey</div>
+  <nav>
+    <a href="/static/index.html">首页</a>
+    <a href="/static/my-surveys.html" class="current">我的问卷</a>
+  </nav>
+</header>
+<main>
+  <section class="panel stack">
+    <div>
+      <h2>问卷结构编辑</h2>
+      <p class="muted">管理题目顺序、题型与评分规则。保存后即可立即发布给参与者。</p>
+    </div>
+    <div class="stack-sm">
+      <label>标题 <input id="surveyTitle" placeholder="未命名问卷"></label>
+      <label>描述 <input id="surveyDesc" placeholder="介绍问卷背景、题量或评分"></label>
+      <div class="actions">
+        <button id="saveMeta" class="secondary">保存基本信息</button>
+        <a href="/static/my-surveys.html" class="btn ghost">返回</a>
+      </div>
+    </div>
+    <div id="questions" class="stack"></div>
+    <div class="actions">
+      <button id="addQuestion">+ 添加题目</button>
+      <button id="saveStructure" class="primary">保存结构</button>
+    </div>
+  </section>
+</main>
+<script defer src="/static/edit-structure.js"></script>
+</body></html>

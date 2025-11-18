@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>USTB 问卷平台</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html" class="current">首页</a>
+		<a href="/static/create-survey.html">创建问卷</a>
+		<a href="/static/my-surveys.html">我的问卷</a>
+		<a href="/static/shared-surveys.html">共享给我</a>
+		<a href="/static/login.html">登录</a>
+	</nav>
+</header>
+<main>
+	<section class="hero">
+		<p class="pill">USTB · 数据库系统原理（双语）Web实验</p>
+		<h1>几分钟构建、发布并统计你的问卷</h1>
+		<p>拖拽式结构编辑、灵活的 JS 评分规则、匿名答题链接与记分榜一应俱全。所有页面均为纯原生实现，轻量却强大。</p>
+		<div class="hero-actions">
+			<a class="btn" href="/static/create-survey.html">立即创建</a>
+			<a class="btn-secondary" href="/static/my-surveys.html">管理问卷</a>
+			<a class="btn-ghost" href="/static/login.html">登录 / 注册</a>
+		</div>
+	</section>
+
+	<section class="panel stack">
+		<h2>核心功能</h2>
+		<div class="cards-grid">
+			<div class="card">
+				<h3>结构化编辑</h3>
+				<p>支持单选、文本、多选题型，按需添加选项、满分与评分规则，实时预览成绩。</p>
+			</div>
+			<div class="card">
+				<h3>灵活评分</h3>
+				<p>使用 JS 表达式或函数定义评分逻辑，满足竞赛、练习或调查等复杂场景。</p>
+			</div>
+			<div class="card">
+				<h3>安全分享</h3>
+				<p>生成可分享链接、二维码与成员白名单，支持匿名答题与协作编辑。</p>
+			</div>
+			<div class="card">
+				<h3>实时榜单</h3>
+				<p>按 IP 聚合的记分榜帮助你即时掌握答题表现，方便课堂或活动互动。</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="panel stack">
+		<h2>快速入口</h2>
+		<div class="pill-group">
+			<a class="pill" href="/static/login.html">登录 / 注册</a>
+			<a class="pill" href="/static/create-survey.html">创建问卷</a>
+			<a class="pill" href="/static/edit-structure.html?id=demo" title="示例">结构编辑</a>
+			<a class="pill" href="/static/batch-submit.html">批量提交</a>
+			<a class="pill" href="/static/scoreboard.html?id=demo">记分榜</a>
+		</div>
+		<p class="muted">所有数据交互通过统一的 JSON API；如需二次开发，可直接复用 <code class="code">/static/api.js</code> 中的调用封装。</p>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{ try{ API.injectUserNav(); }catch(e){} });
+</script></body></html>

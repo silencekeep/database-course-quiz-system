@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>问卷系统 Demo</title>
+</head>
+<body>
+  <h1>匿名问卷提交</h1>
+  <form id="anonymous-survey-form">
+    <p>1. 你如何评价我们的服务？</p>
+    <label><input type="radio" name="q1" value="A" required> 非常好 (A)</label><br>
+    <label><input type="radio" name="q1" value="B"> 好 (B)</label><br>
+    <label><input type="radio" name="q1" value="C"> 一般 (C)</label><br>
+    <label><input type="radio" name="q1" value="D"> 差 (D)</label><br>
+    <button type="submit">提交问卷</button>
+  </form>
+  <div id="anonymous-response"></div>
+
+  <h1>注册用户问卷创建及共享</h1>
+  <form id="registered-survey-form">
+    <p>问卷标题: <input type="text" name="survey_title" required></p>
+    <p>题目内容: <input type="text" name="question_content" required></p>
+    <p>选项A: <input type="text" name="option_A" required></p>
+    <p>选项B: <input type="text" name="option_B" required></p>
+    <!-- 可增加更多选项 -->
+    <button type="submit">创建问卷</button>
+  </form>
+  <div id="registered-response"></div>
+
+  <script>
+    // 示例的JS规则解析函数
+    function calculateScore(answer) {
+      // 根据JS规则解析计算分数：假设A得10分，B得5分，C得3分，其他得0分
+      if(answer === 'A') return 10;
+      if(answer === 'B') return 5;
+      if(answer === 'C') return 3;
+      return 0;
+    }
+
+    // 处理匿名问卷提交
+    document.getElementById('anonymous-survey-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const answer = formData.get('q1');
+      const score = calculateScore(answer);
+      const jsonData = {
+        question_id: 1, // 示例问题ID
+        answer: answer,
+        score: score,
+        submit_time: new Date().toISOString()
+      };
+      
+      fetch('/submitSurvey', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData)
+      })
+      .then(response => response.text())
+      .then(text => {
+        document.getElementById('anonymous-response').innerText = '提交成功：' + text;
+      })
+      .catch(error => {
+        document.getElementById('anonymous-response').innerText = '提交失败：' + error;
+      });
+    });
+
+    // 处理注册用户问卷创建及共享
+    document.getElementById('registered-survey-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const jsonData = {
+        survey_title: formData.get('survey_title'),
+        creator_id: 1, // 示例注册用户ID
+        create_time: new Date().toISOString(),
+        questions: [
+          {
+            question_content: formData.get('question_content'),
+            options: [
+              { label: 'A', content: formData.get('option_A') },
+              { label: 'B', content: formData.get('option_B') }
+            ],
+            score_rule: {
+              rule_js_func: 'function(answer){ return answer === "A" ? 10 : (answer === "B" ? 5 : 0); }',
+              full_score: 10
+            }
+          }
+        ],
+        shared_users: [] // 可扩展共享给其他用户
+      };
+      
+      fetch('/createSurvey', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData)
+      })
+      .then(response => response.text())
+      .then(text => {
+        document.getElementById('registered-response').innerText = '创建成功：' + text;
+      })
+      .catch(error => {
+        document.getElementById('registered-response').innerText = '创建失败：' + error;
+      });
+    });
+  </script>
+</body>
+</html>

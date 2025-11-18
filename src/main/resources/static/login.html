@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>登录</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/create-survey.html">创建</a>
+		<a href="/static/my-surveys.html">我的问卷</a>
+		<a href="/static/shared-surveys.html">共享给我</a>
+		<a href="/static/login.html" class="current">登录</a>
+	</nav>
+</header>
+<main>
+	<section class="panel form-card stack">
+		<div>
+			<h2>欢迎回来</h2>
+			<p class="muted">输入账号与密码即可继续创建或管理你的问卷。没有账号？<a href="/static/register.html">去注册</a>。</p>
+		</div>
+		<form id="f" class="stack">
+			<div>
+				<label>账号</label>
+				<input name="account" placeholder="例如 student01" required>
+			</div>
+			<div>
+				<label>密码</label>
+				<input type="password" name="password" placeholder="请输入密码" required>
+			</div>
+			<button>登录</button>
+		</form>
+		<div id="msg"></div>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	const f=$('#f');
+	if(!f){ return; }
+	f.addEventListener('submit', async e=>{
+		e.preventDefault();
+		const fd=new FormData(f);
+		try{
+			const r=await API.login(fd.get('account'), fd.get('password'));
+			API.setToken(r.token);
+			toast('登录成功');
+			location.href='/static/my-surveys.html';
+		}catch(err){
+			$('#msg').textContent='登录失败 '+(err.data?.error||'');
+			$('#msg').className='error';
+		}
+	});
+});
+</script></body></html>

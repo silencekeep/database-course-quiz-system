@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>我的问卷</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+  <div class="logo">USTB Survey</div>
+  <nav>
+    <a href="/static/index.html">首页</a>
+    <a href="/static/create-survey.html">创建</a>
+    <a href="/static/my-surveys.html" class="current">我的问卷</a>
+    <a href="/static/shared-surveys.html">共享给我</a>
+  </nav>
+</header>
+<main>
+  <section class="panel stack">
+    <div>
+      <h2>我的问卷</h2>
+      <p class="muted">查看、分享或编辑我创建的全部问卷，并可一键复制公开答题链接。</p>
+    </div>
+    <div id="list"></div>
+    <div id="pager" class="pill-group" style="justify-content:flex-end"></div>
+  </section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+  if(typeof $!=='function'){ console.error('[my-surveys] $ 未定义'); return; }
+  let currentPage = 1; let totalPages = 1; let pageSize=20; let total=0;
+  async function load(page=1){ try { const data = await API.listMySurveys(page); render(data); } catch(e){ toast('加载失败','error'); } }
+  function render(data){
+    const items = data.items || data; currentPage = data.page || 1; pageSize = data.page_size || items.length || 20; total = data.total != null ? data.total : items.length; totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const c=$('#list'); c.innerHTML='';
+  if(!items.length){ c.innerHTML='<div class="empty">尚未创建任何问卷，点击“创建”立即开始 🎯</div>'; buildPager(); return; }
+  const table=document.createElement('table'); table.className='table'; table.innerHTML='<thead><tr><th>ID</th><th>标题</th><th>分享</th><th>答题链接</th><th>记分榜</th><th>复制链接</th><th>编辑</th><th>删除</th></tr></thead>';
+    const tb=document.createElement('tbody');
+  items.forEach(s=>{ const id = s.surveyId || s.id; const title = s.surveyTitle || s.title || '(未命名)'; const linkPath = '/static/survey.html?id='+id; const absLink = (location.origin||'') + linkPath; const tr=document.createElement('tr'); tr.innerHTML=`<td>${id}</td><td>${title}</td><td><a href="/static/shares.html?surveyId=${id}">管理</a></td><td><a href="${linkPath}" target="_blank">打开</a></td><td><a href="/static/scoreboard.html?id=${id}">查看</a></td><td><button data-copy="${absLink}" class="secondary">复制</button></td><td><button data-edit="${id}" class="secondary">编辑</button></td><td><button data-del="${id}" class="danger">删除</button></td>`; tb.appendChild(tr); });
+    table.appendChild(tb); c.appendChild(table);
+    c.querySelectorAll('button[data-del]').forEach(btn=>{ btn.onclick=async ()=>{ if(btn.disabled) return; if(!confirm('确认删除?'))return; const id=btn.getAttribute('data-del'); const original=btn.textContent; btn.disabled=true; btn.textContent='删除中...'; try{ await API.deleteSurvey(id); toast('已删除'); load(currentPage); }catch(e){ toast('删除失败','error'); btn.disabled=false; btn.textContent=original; } }; });
+    c.querySelectorAll('button[data-edit]').forEach(btn=>{ btn.onclick=()=>{ location.href='/static/edit-survey.html?id='+btn.getAttribute('data-edit'); }; });
+    c.querySelectorAll('button[data-copy]').forEach(btn=>{ btn.onclick=()=>{ const link=btn.getAttribute('data-copy'); navigator.clipboard?.writeText(link).then(()=>toast('已复制链接')).catch(()=>{ try { const ta=document.createElement('textarea'); ta.value=link; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('已复制'); } catch { prompt('复制失败，手动复制:', link); } }); }; });
+    buildPager();
+  }
+  function buildPager(){ const pg=$('#pager'); pg.innerHTML=''; if(total==null) return; const info=document.createElement('span'); info.textContent=`第 ${currentPage}/${totalPages} 页 · 共 ${total} 条`; info.className='muted'; const prev=document.createElement('button'); prev.className='secondary'; prev.textContent='上一页'; prev.disabled=currentPage<=1; prev.onclick=()=>load(currentPage-1); const next=document.createElement('button'); next.className='secondary'; next.textContent='下一页'; next.disabled=currentPage>=totalPages; next.onclick=()=>load(currentPage+1); pg.appendChild(prev); pg.appendChild(next); pg.appendChild(info); }
+  load();
+  API.injectUserNav();
+});
+</script>
+</body></html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>创建问卷</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+  <div class="logo">USTB Survey</div>
+  <nav>
+    <a href="/static/index.html">首页</a>
+    <a href="/static/create-survey.html" class="current">创建</a>
+    <a href="/static/my-surveys.html">我的问卷</a>
+    <a href="/static/shared-surveys.html">共享给我</a>
+  </nav>
+</header>
+<main>
+  <section class="panel stack">
+    <div>
+      <h2>创建问卷</h2>
+      <p class="muted">设置基础信息、添加题目与评分规则。保存后将自动获取可分享的答题链接。</p>
+    </div>
+    <form id="surveyForm" class="stack">
+      <div>
+        <label>标题</label>
+        <input name="title" placeholder="例如 校园安全调查" required>
+      </div>
+      <div>
+        <label>描述</label>
+        <textarea name="description" rows="3" placeholder="可向答题者说明背景、截止时间等"></textarea>
+      </div>
+      <section class="stack">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <h3 style="margin:0">题目列表</h3>
+          <button type="button" id="addQ" class="secondary">+ 添加题目</button>
+        </div>
+        <ol id="questions" class="stack"></ol>
+      </section>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button type="submit">提交创建</button>
+        <button type="button" id="previewBtn" class="ghost" disabled>预览 (即将推出)</button>
+      </div>
+    </form>
+  </section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+  if(typeof $!=='function'){ console.error('[create-survey] $ 未定义'); return; }
+  const qList=$('#questions');
+  function addOption(ul){
+    const li=document.createElement('li');
+    li.innerHTML=`<input name="opt_text" placeholder="选项内容" required> <button type="button" class="danger rmOpt">x</button>`;
+    ul.appendChild(li); li.querySelector('.rmOpt').onclick=()=>li.remove();
+  }
+  function addQuestion(){
+    const idx=qList.children.length+1;
+    const li=document.createElement('li');
+    li.innerHTML=`<div class="question" data-index="${idx}">
+ <label>题干<input name="q_title" required></label>
+ <label>类型<select name="q_type"><option value="single">单选</option><option value="multi">多选</option><option value="text">文本</option><option value="number">数字</option></select></label>
+ <label>满分<input type="number" name="fullScore" value="1" step="0.5"></label>
+ <div class="options-wrap">
+   <div class="opt-header">选项 <button type="button" class="addOpt secondary">+选项</button></div>
+   <ul class="options"></ul>
+ </div>
+ <details><summary>评分规则 (可 JS 表达式: 使用变量 answer, fullScore)</summary>
+ <textarea name="rule" rows="3" placeholder="例如: answer == 'A' ? fullScore : 0"></textarea></details>
+ <button type="button" class="danger removeQ">删除题目</button>
+ </div>`;
+    qList.appendChild(li);
+    li.querySelector('.addOpt').onclick=()=>addOption(li.querySelector('.options'));
+    li.querySelector('.removeQ').onclick=()=>li.remove();
+  }
+  document.getElementById('addQ').addEventListener('click',()=>{ addQuestion(); });
+  addQuestion();
+  API.injectUserNav();
+  const RULE_BLACKLIST = ['java.lang','Packages','java.io','java.nio','java.net','Runtime','Process','Thread','System.exit'];
+  function validateRule(code){ if(!code) return null; if(code.length>1024) return '规则过长 (>1024)'; const lower=code.toLowerCase(); for(const k of RULE_BLACKLIST){ if(lower.includes(k.toLowerCase())) return '规则包含禁止片段: '+k; } return null; }
+  document.getElementById('surveyForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    try {
+      const form=e.target; const survey={title:form.title.value.trim(), description:form.description.value.trim(), questions:[]};
+      [...qList.children].forEach(wrap=>{ const div=wrap.querySelector('.question'); const q={title:div.querySelector('input[name=q_title]').value.trim(), type:div.querySelector('select[name=q_type]').value, fullScore:parseFloat(div.querySelector('input[name=fullScore]').value)||1, options:[], scoreRule:div.querySelector('textarea[name=rule]').value.trim()}; div.querySelectorAll('ul.options > li').forEach(optLi=>{ const v=optLi.querySelector('input[name=opt_text]').value.trim(); if(v) q.options.push(v); }); const errMsg=validateRule(q.scoreRule); if(errMsg) throw new Error('题目"'+q.title+'" 规则非法: '+errMsg); survey.questions.push(q); });
+      const r=await API.createSurvey(survey);
+      const sid = r.surveyId || r.id;
+      const link = location.origin + '/static/survey.html?id=' + sid;
+      toast('创建成功 ID='+sid);
+      if(confirm('创建成功。是否立即复制答题链接?')){ try { await navigator.clipboard.writeText(link); toast('链接已复制'); } catch { prompt('复制失败，请手动复制', link); } }
+      if(confirm('是否前往“我的问卷”查看?')){ location.href='/static/my-surveys.html'; }
+    } catch(err){ alert('创建失败: '+(err.message||err.data?.error||'')); toast('创建失败 '+(err.message||err.data?.error||''),'error'); }
+  });
+});
+</script>
+</body></html>

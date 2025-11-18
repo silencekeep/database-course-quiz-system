@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>批量提交</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/create-survey.html">创建</a>
+		<a href="/static/my-surveys.html">我的问卷</a>
+	</nav>
+</header>
+<main>
+	<section class="panel stack">
+		<div>
+			<h2>批量提交</h2>
+			<p class="muted">向公开问卷快速灌入答卷 JSON，可用于导入历史成绩或压测。</p>
+		</div>
+		<form id="f" class="stack">
+			<label>问卷 ID <input name="surveyId" required placeholder="例如 1024"></label>
+			<label>JSON 数组<textarea name="json" rows="8" placeholder='[{"question_id":1,"answer":"A"},{"question_id":2,"answer":["A","B"]}]'></textarea></label>
+			<div class="actions">
+				<button class="primary">提交</button>
+				<button type="reset" class="ghost">清空</button>
+			</div>
+		</form>
+		<pre id="result" class="code-block"></pre>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	if(typeof $!=='function'){ console.error('[batch-submit] $ 未定义'); return; }
+	const form=document.getElementById('f');
+	form.addEventListener('submit', async e=>{
+		e.preventDefault();
+		const fd=new FormData(form);
+		try{
+			const sid=fd.get('surveyId');
+			const arr=JSON.parse(fd.get('json'));
+			const r=await API.batchSubmit(sid, arr);
+			const total=r.total_score ?? r.totalScore ?? r.score ?? r.total;
+			$('#result').textContent='得分:'+ total + (r.details? ('\n'+JSON.stringify(r.details,null,2)) : '');
+		}catch(err){ toast('失败 '+(err.message||'') ); }
+	});
+});
+</script>
+</body></html>

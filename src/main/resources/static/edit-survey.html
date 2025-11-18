@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>编辑问卷</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/create-survey.html">创建</a>
+		<a href="/static/my-surveys.html" class="current">我的问卷</a>
+	</nav>
+</header>
+<main>
+	<section class="panel stack">
+		<div>
+			<h2>编辑问卷</h2>
+			<p class="muted">更新标题与说明后，结构与分享成员保持不变。保存成功将返回「我的问卷」。</p>
+		</div>
+		<form id="f" class="stack">
+			<label>标题<input name="title" required placeholder="例如 2024 春季课程测验"></label>
+			<label>描述<textarea name="description" rows="3" placeholder="补充问卷意图、题量或评分方式"></textarea></label>
+			<div class="actions">
+				<button class="primary">保存</button>
+				<a href="/static/my-surveys.html" class="btn ghost">返回列表</a>
+			</div>
+		</form>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	if(typeof $!=='function'){ console.error('[edit-survey] $ 未定义'); return; }
+	const id=new URLSearchParams(location.search).get('id'); if(!id){ toast('缺少 id','error'); return; }
+	const form=document.getElementById('f');
+	async function load(){ try{ const s=await API.getSurvey(id); form.title.value=s.title||''; form.description.value=s.description||''; }catch(e){ toast('加载失败'); } }
+	form.addEventListener('submit', async e=>{ e.preventDefault(); try{ await API.updateSurvey(id,{title:form.title.value.trim(),description:form.description.value.trim()}); toast('保存成功'); location.href='/static/my-surveys.html'; }catch(err){ toast('保存失败'); } });
+	load();
+	API.injectUserNav();
+});
+</script>
+</body></html>

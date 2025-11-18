@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>注册</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/create-survey.html">创建</a>
+		<a href="/static/my-surveys.html">我的问卷</a>
+		<a href="/static/shared-surveys.html">共享给我</a>
+		<a href="/static/register.html" class="current">注册</a>
+	</nav>
+</header>
+<main>
+	<section class="panel form-card stack">
+		<div>
+			<h2>创建新账号</h2>
+			<p class="muted">完成注册后可立即创建问卷、分享链接并查看记分榜。</p>
+		</div>
+		<form id="f" class="stack">
+			<div>
+				<label>账号</label>
+				<input name="account" placeholder="字母/数字组合" required>
+			</div>
+			<div>
+				<label>昵称</label>
+				<input name="name" placeholder="将显示在导航栏" required>
+			</div>
+			<div>
+				<label>密码</label>
+				<input type="password" name="password" placeholder="至少 6 位" required>
+			</div>
+			<button>注册</button>
+		</form>
+		<div id="msg"></div>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	const form=$('#f');
+	if(!form) return;
+	form.addEventListener('submit', async e=>{
+		e.preventDefault();
+		const fd=new FormData(e.target);
+		try {
+			const r=await API.register(fd.get('account'), fd.get('name'), fd.get('password'));
+			API.setToken(r.token);
+			toast('注册成功');
+			location.href='/static/create-survey.html';
+		} catch(err){
+			$('#msg').textContent='注册失败 '+(err.data?.error||'');
+			$('#msg').className='error';
+		}
+	});
+});
+</script></body></html>

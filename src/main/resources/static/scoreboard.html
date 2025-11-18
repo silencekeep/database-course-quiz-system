@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>记分榜</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/create-survey.html">创建</a>
+		<a href="/static/my-surveys.html">我的问卷</a>
+	</nav>
+</header>
+<main>
+	<section class="panel stack">
+		<div>
+			<h2>记分榜</h2>
+			<p class="muted">按 IP 聚合的最高得分，可用来举办竞赛或课堂抢答。</p>
+		</div>
+		<table id="tb" class="table"><thead><tr><th>排名</th><th>IP</th><th>最高得分</th></tr></thead><tbody></tbody></table>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	if(typeof $!=='function'){ console.error('[scoreboard] $ 未定义'); return; }
+	const id=new URLSearchParams(location.search).get('id'); if(!id){ toast('缺少 id','error'); return; }
+	async function load(){ try{ const data=await API.scoreboard(id); render(data); }catch(e){ toast('加载失败'); } }
+	function render(list){ const body=$('#tb tbody'); body.innerHTML=''; list.forEach((row,i)=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${i+1}</td><td>${row.ip}</td><td>${row.score}</td>`; body.appendChild(tr); }); }
+	load();
+	API.injectUserNav();
+});
+</script>
+</body></html>

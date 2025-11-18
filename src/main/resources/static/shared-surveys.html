@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>共享给我的问卷</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/create-survey.html">创建</a>
+		<a href="/static/my-surveys.html">我的问卷</a>
+		<a href="/static/shared-surveys.html" class="current">共享给我</a>
+	</nav>
+</header>
+<main>
+	<section class="panel stack">
+		<div>
+			<h2>共享给我的问卷</h2>
+			<p class="muted">查看被授予协作或答题权限的问卷，快速跳转到答题页面或记分榜。</p>
+		</div>
+		<div id="list"></div>
+		<div id="pager" class="pill-group" style="justify-content:flex-end"></div>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	if(typeof $!=='function'){ console.error('[shared-surveys] $ 未定义'); return; }
+	let currentPage = 1;
+	async function load(page=1){ try{ const data=await API.listSharedSurveys(page); render(data); }catch(e){ toast('加载失败','error'); } }
+	function render(data){ const items=data.items||data; const c=$('#list'); c.innerHTML=''; if(!items.length){ c.innerHTML='<div class="empty">暂无共享问卷</div>'; } else { const table=document.createElement('table'); table.className='table'; table.innerHTML='<thead><tr><th>ID</th><th>标题</th><th>操作</th></tr></thead>'; const tb=document.createElement('tbody'); items.forEach(s=>{ const id=s.surveyId||s.id; const title=s.surveyTitle||s.title||'(未命名)'; const tr=document.createElement('tr'); tr.innerHTML=`<td>${id}</td><td>${title}</td><td><a href="/static/survey.html?id=${id}">答题</a> · <a href="/static/scoreboard.html?id=${id}">记分榜</a></td>`; tb.appendChild(tr); }); table.appendChild(tb); c.appendChild(table);} buildPager(data); }
+	function buildPager(data){ const pg=$('#pager'); pg.innerHTML=''; if(!data||data.total==null) return; const totalPages=Math.max(1, Math.ceil(data.total/data.page_size)); currentPage=data.page; const info=document.createElement('span'); info.textContent=`第 ${currentPage}/${totalPages} 页 · 共 ${data.total} 条`; info.className='muted'; const prev=document.createElement('button'); prev.className='secondary'; prev.textContent='上一页'; prev.disabled=currentPage<=1; prev.onclick=()=>load(currentPage-1); const next=document.createElement('button'); next.className='secondary'; next.textContent='下一页'; next.disabled=currentPage>=totalPages; next.onclick=()=>load(currentPage+1); pg.appendChild(prev); pg.appendChild(next); pg.appendChild(info); }
+	load();
+	API.injectUserNav();
+});
+</script>
+</body></html>

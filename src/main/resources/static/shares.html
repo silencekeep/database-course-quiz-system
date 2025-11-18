@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>分享管理</title><link rel="stylesheet" href="/static/style.css"><script src="/static/api.js"></script></head><body>
+<header>
+	<div class="logo">USTB Survey</div>
+	<nav>
+		<a href="/static/index.html">首页</a>
+		<a href="/static/my-surveys.html" class="current">我的问卷</a>
+	</nav>
+</header>
+<main>
+	<section class="panel stack">
+		<div>
+			<h2>分享管理</h2>
+			<p class="muted">通过分享 ID 将问卷协作给其他教师或助教，方便共同维护与评分。</p>
+		</div>
+		<div id="info" class="badge"></div>
+		<form id="shareForm" class="stack">
+			<label>目标账号 ID（或临时编号）<input name="targetAccount" required placeholder="例如 20090001"></label>
+			<div class="actions">
+				<button class="primary">创建分享</button>
+				<button type="reset" class="ghost">清空</button>
+			</div>
+		</form>
+		<div>
+			<h3 style="margin-bottom:8px;">已分享成员</h3>
+			<ul id="members" class="share-list"></ul>
+		</div>
+	</section>
+</main>
+<script>
+AppBoot.waitAPI(()=>{
+	if(typeof $!=='function'){ console.error('[shares] $ 未定义'); return; }
+	const sid=new URLSearchParams(location.search).get('surveyId'); if(!sid){ toast('缺少 surveyId','error'); return; }
+	async function reloadMembers(){ try{ const shares=await API.listShares(sid); const ul=$('#members'); ul.innerHTML=''; shares.forEach(m=>{ const li=document.createElement('li'); li.innerHTML=`<span><strong>Share #${m.id}</strong><br><span class="muted">目标账号 ${m.targetAccountId}</span></span>`; const tag=document.createElement('span'); tag.className='badge accent'; tag.textContent='协作中'; li.appendChild(tag); ul.appendChild(li); }); if(shares.length===0){ ul.innerHTML='<li class="empty">暂无分享成员</li>'; } }catch(e){ toast('加载分享成员失败'); } }
+	document.getElementById('shareForm').addEventListener('submit', async e=>{ e.preventDefault(); const fd=new FormData(e.target); try{ await API.createShare(sid, fd.get('targetAccount')); toast('创建成功'); await reloadMembers(); }catch(err){ toast('创建失败'); } });
+	reloadMembers();
+	API.injectUserNav();
+});
+</script>
+</body></html>
