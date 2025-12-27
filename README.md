@@ -6,12 +6,8 @@
 
 ## 成员
 
-* 王思涵 计231
-
-* 王宇航 计231
-
-* 陈家煜 计231
-
+* 估计老师也不会看，这就不透露了
+* 
 ## 功能概述
 
 - 用户注册/登录 (简单内存 Token) `/api/auth/register` `/api/auth/login`
@@ -184,3 +180,4 @@ curl http://localhost:8080/api/surveys/{surveyId}/scoreboard
 - openGauss 需要合适驱动版本，注意Docker中下载的版本，与PostgreSQL对应。
 
 ## 
+
